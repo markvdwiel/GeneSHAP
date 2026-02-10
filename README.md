@@ -12,6 +12,7 @@ B. Data example on colorectal cancer survival data.
   2. DataExample2.R (Computation of Shapley values for blockForest model)
   3. DataExample3.R (SAGE + Inference)
   4. DataExampleAll.R (Invokes all three modules)
+  5. 500_CRC.Rdata (Data)
 
 C. Simulation results, low-dimensional: SimExample_lowdim.R
 
