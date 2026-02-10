@@ -1,24 +1,28 @@
 ########################################################################
 ## --- Data Example, part III: Illustrations for explaining blockForest model
 ## --- 1. Asymmetric global feature importance: SAGE-C and SAGE-AUC
-## --- 2. Comparing Asymmetric with Symmetric 
+## --- 2. Comparing Asymmetric with Symmetric
 ## --- 3. Global inference with local Shapley values
 ## --- 4. Mediation effect of disease state
 ########################################################################
 
-# NOTE: AS RESULTS FROM TREE ENSEMBLE LEARNERS (like blockForest) ARE NOT 
-# DETERMINISTIC, RESULTS MAY DEVIATE SOMEWHAT FROM THOSE IN THE MANUSCRIPT. 
+# NOTE: AS RESULTS FROM TREE ENSEMBLE LEARNERS (like blockForest) ARE NOT
+# DETERMINISTIC, RESULTS MAY DEVIATE SOMEWHAT FROM THOSE IN THE MANUSCRIPT.
 # QUALITATIVELY, HOWEVER, THEY SHOULD BE VERY SIMILAR.
 
 #'set working directory
-setwd("C:/Synchr/Rscripts/ShapleyDependency/GeneShap/")
+#setwd("C:/Synchr/Rscripts/ShapleyDependency/GeneShap/")
 
 #'new GeneShap functions
 source("GeneShap_source.R")
 
-# load libraries
-library(survival)
+# Install specific version of the shapr package
+library(remotes)
+#remotes::install_github("NorskRegnesentral/shapr", ref = "hacks_for_Mark")
 library(shapr)
+
+# load other libraries
+library(survival)
 library(data.table) #for shapr
 library(future) #for shapr
 library(progressr) #for shapr
@@ -51,9 +55,9 @@ Shapbf <- ShapSym$shap
 #
 #####################################################
 
-# Global feature importance by SAGE. SAGE applies an predictive 
-# performance evaluation function (like C-index) to all coalitions. 
-# For that it uses the same weights as Shapley, and the predictions for each 
+# Global feature importance by SAGE. SAGE applies an predictive
+# performance evaluation function (like C-index) to all coalitions.
+# For that it uses the same weights as Shapley, and the predictions for each
 # coalition, which are stored in the Shapley object.
 
 print("ASSESSING GLOBAL FEATURE IMPORTANCE BY SAGE")
@@ -64,9 +68,9 @@ vS <- as.matrix(ShapAsym$nu[,-1])
 rownames(vS) <- colnames(R_D)
 
 # Compute performance for all coalitions
-Cinds_coal <- apply(vS, 1, function(row) Est.Cval(cbind(Y_explain[,1], Y_explain[,2], row), 
+Cinds_coal <- apply(vS, 1, function(row) Est.Cval(cbind(Y_explain[,1], Y_explain[,2], row),
                                                   tau = 8, nofit=T)$Dhat)
-AUCs_coal <- apply(vS, 1, function(row) survivalROC.C(Stime = Y_explain[,1], status = Y_explain[,2], 
+AUCs_coal <- apply(vS, 1, function(row) survivalROC.C(Stime = Y_explain[,1], status = Y_explain[,2],
                                                       marker = row, predict.time = 5)$AUC)
 
 # Compute SAGE, by weighing coalitions according to Shapley weigths
@@ -82,9 +86,9 @@ SAGEAsym <- rbind(SAGEAsym,total=total)
 #Same, SAGE for Symmetric
 vS <- as.matrix(ShapSym$nu[,-1])
 rownames(vS) <- colnames(R_D_Sym)
-Cinds_coal <- apply(vS, 1, function(row) Est.Cval(cbind(Y_explain[,1], Y_explain[,2], row), 
+Cinds_coal <- apply(vS, 1, function(row) Est.Cval(cbind(Y_explain[,1], Y_explain[,2], row),
                                                   tau = 8, nofit=T)$Dhat)
-AUCs_coal <- apply(vS, 1, function(row) survivalROC.C(Stime = Y_explain[,1], status = Y_explain[,2], 
+AUCs_coal <- apply(vS, 1, function(row) survivalROC.C(Stime = Y_explain[,1], status = Y_explain[,2],
                                                       marker = row, predict.time = 5)$AUC)
 
 SAGESymC <- as.matrix(R_D_Sym) %*% matrix(Cinds_coal,ncol=1)
@@ -104,14 +108,14 @@ cat("\n")
 
 #####################################################
 #
-#                      Inference 
+#                      Inference
 #
 #####################################################
 
 # Global importance: likelihood ratios
-# As Shapley is a linear decomposition of the log-cumulative Hazard (for block Forest) 
+# As Shapley is a linear decomposition of the log-cumulative Hazard (for block Forest)
 # a (partial) likelihood can be computed for the full model
-# and compared to a likelihood for a model with a feature left out. 
+# and compared to a likelihood for a model with a feature left out.
 
 
 # Conventional likelihood-ratio test for all features (except Intercept)
@@ -124,7 +128,7 @@ if(asymmetric){
   cat("\n")
 } else {
   dat <- data.frame(Shapbf)
-  print("       Test results for SYMMETRIC setting      ")  
+  print("       Test results for SYMMETRIC setting      ")
   cat("\n")
 }
 nc <- ncol(dat)
@@ -169,7 +173,7 @@ print("CMS+predStage")
 cph <- coxph(Y_explain ~ ., data = dat)
 datk <- dat[,-(3:4)]
 cph0 <- coxph(Y_explain ~ ., data = datk)
-aov <- anova(cph,cph0) 
+aov <- anova(cph,cph0)
 #print(aov)
 newp <- aov$`Pr(>|Chi|)`[2]
 ll <- aov$loglik[1] - aov$loglik[2]
@@ -184,15 +188,15 @@ cn <- colnames(dat)
 npps <- c(NA)
 for(k in 2:nc){
 # print(cn[k])
-#Matching: creates 50 blocks on the basis of the 
+#Matching: creates 50 blocks on the basis of the
 #sum of Shapley values of other variables
   offsets <- rowSums(dat[,-c(1,k)])
   qs <- quantile(offsets, p=seq(0,1,by=0.02))
   whblock <- function(x) which(qs>x)[1]
   blocks <- sapply(offsets, whblock)
   dattest <- data.frame(Y_explain, vartest = dat[,k], blocks=factor(blocks))
-#Conditional independence test based on permutation. 
-#All samples within one block are permuted 
+#Conditional independence test based on permutation.
+#All samples within one block are permuted
   newp <- pvalue(independence_test(Y_explain ~ vartest | blocks, data = dattest))
   npps <- c(npps,newp)
 }
@@ -245,9 +249,9 @@ gall <- aShapbf$genes + aShapbf$CMS + aShapbf$predStage
 shaps <- data.frame(G_Asym = gall, D = Clin_explain$Stage)
 boxplot(G_Asym ~ D, data = shaps, xlab="", main="Asymmetric Shapley", ylim =c(-0.6,1.2),
         names=c("I","II","III","IV"), col=1:4)
-Dint <- as.numeric(Clin_explain$Stage) 
+Dint <- as.numeric(Clin_explain$Stage)
 points(Dint,gall,col="darkgrey",pch=4,cex=1)
-# Test difference between gene Shapley values 
+# Test difference between gene Shapley values
 print("Test difference between Asymmetric gene Shapley values:")
 print(kruskal_test(gall ~ Clin_explain$Stage)) #Asymmetric
 
@@ -258,7 +262,7 @@ boxplot(G_Sym ~ D, data = shaps, xlab="", main="Symmetric Shapley", ylim =c(-0.6
         names=c("I","II","III","IV"), col=1:4)
 Dint <- as.numeric(Clin_explain$Stage)
 points(Dint,gall,col="darkgrey",pch=4,cex=1)
-# Test difference between gene Shapley values 
+# Test difference between gene Shapley values
 print("Test difference between Symmetric gene Shapley values:")
 print(kruskal_test(gall ~ Clin_explain$Stage)) #Symmetric
 

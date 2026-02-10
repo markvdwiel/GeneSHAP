@@ -4,14 +4,18 @@
 ########################################################################
 
 #set working directory
-setwd("C:/Synchr/Rscripts/ShapleyDependency/GeneShap/")
+#setwd("C:/Synchr/Rscripts/ShapleyDependency/GeneShap/")
 
 #new GeneShap functions
 source("GeneShap_source.R")
 
-# load libraries
-library(survival)
+# Install specific version of the shapr package
+library(remotes)
+#remotes::install_github("NorskRegnesentral/shapr", ref = "hacks_for_Mark")
 library(shapr)
+
+# load other libraries
+library(survival)
 library(data.table) #for shapr
 library(future) #for shapr
 library(progressr) #for shapr
