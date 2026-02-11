@@ -4,14 +4,18 @@
 #
 ###############################################################
 
-# This script produces the results of the colorectal cancer 
-# data example in the manuscript. NOTE: as results from tree ensemble learners 
-# and cross-validation (for tuning parameters) are not deterministic, 
+# This script produces the results of the colorectal cancer
+# data example in the manuscript. NOTE: as results from tree ensemble learners
+# and cross-validation (for tuning parameters) are not deterministic,
 # results may deviate somewhat from those in the manuscript.
 # Qualitatively, however, they should be very similar.
 
-# For detailed coding info, we refer to the annotation in the 
-# separate DataExampleX.R scripts, X=1,2,3. 
+# For detailed coding info, we refer to the annotation in the
+# separate DataExampleX.R scripts, X=1,2,3.
+
+# Set working directory
+#setwd("C:/Synchr/Rscripts/ShapleyDependency/GeneShap/")
+
 
 # libraries
 # for model fitting
@@ -25,20 +29,22 @@ library(glmnet) #fits ridge regression
 library(survC1)
 library(survivalROC)
 
-# for Shapley values
+# For Shapley values
+# Install specific version of the shapr package
+library(remotes)
+#remotes::install_github("NorskRegnesentral/shapr", ref = "hacks_for_Mark")
 library(shapr)
+
 library(data.table)
 library(future)
-library(progressr) 
+library(progressr)
 
 # for (non-parametric) inference
 library(coin)
 
-# Set working directory
-setwd("C:/Synchr/Rscripts/ShapleyDependency/GeneShap/")
 
 #####
-#Part 1: Initial colorectal cancer data processing and 
+#Part 1: Initial colorectal cancer data processing and
 #model fitting: blockForest, fusedTree, ridge0
 system.time(source("DataExample1.R")) #~800sec
 
