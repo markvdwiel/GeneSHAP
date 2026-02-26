@@ -1,17 +1,21 @@
 ########################################################################
-## --- Data Example, part II: (Asymmetric) Shapley values for 
-## --- best performing model, blockForest  
+## --- Data Example, part II: (Asymmetric) Shapley values for
+## --- best performing model, blockForest
 ########################################################################
 
 #set working directory
-setwd("C:/Synchr/Rscripts/ShapleyDependency/GeneShap/")
+#setwd("C:/Synchr/Rscripts/ShapleyDependency/GeneShap/")
 
 #new GeneShap functions
 source("GeneShap_source.R")
 
-# load libraries
-library(survival)
+# Install specific version of the shapr package
+library(remotes)
+#remotes::install_github("NorskRegnesentral/shapr", ref = "hacks_for_Mark")
 library(shapr)
+
+# load other libraries
+library(survival)
 library(data.table) #for shapr
 library(future) #for shapr
 library(progressr) #for shapr
@@ -29,7 +33,7 @@ load("data.Rdata")
 #
 #####################################################
 
-#PCA for high-dimensional objetct (Omics). These are used for 
+#PCA for high-dimensional objetct (Omics). These are used for
 #dependency modelling when computing conditional Shapley values
 
 pca_dim <- 10
@@ -49,8 +53,8 @@ x_explain_reduced <- cbind(x_explain_genes_pca, Clin_explain)
 #
 #####################################################
 # blockForest model was best performing model in terms of prediction
-# (as compared to fusedTree and ridge0). Therefore. we focus 
-# on explaining the blockForest model 
+# (as compared to fusedTree and ridge0). Therefore. we focus
+# on explaining the blockForest model
 
 print("      COMPUTING SHAPLEY VALUES FOR BLOCKFOREST MODEL    ")
 cat("\n")
@@ -99,13 +103,13 @@ cat("\n")
 shap_names <- names(group)
 coalition_list <- parse_coalitions(shap_names, names(R_D))
 
-#mean prediction for training set 
-X_tot_train_new <- data.frame(Clin_train,Genes_train) 
+#mean prediction for training set
+X_tot_train_new <- data.frame(Clin_train,Genes_train)
 pred_train_org <- predict_bf(bf, X_tot_train_new)
 
 print("Computing Asymmetric Shapley values for blockForest; takes some time (3-5 min)")
 cat("\n")
-ShapAsym3 <- explain_manual(model = model_list,
+ShapAsym <- explain_manual(model = model_list,
                             x_explain = x_explain_reduced,
                             x_train = x_train_reduced,
                             predict_model = predict_with_reduced_bf,
@@ -116,7 +120,7 @@ ShapAsym3 <- explain_manual(model = model_list,
                             group = group
 )
 
-### Same but now symmetric Shapley values 
+### Same but now symmetric Shapley values
 #no ordering between feature groups
 R_D_Sym <- R_D_Matrix(Genes, Status, Confounders, Ordering_between = NULL,
                   verbose = FALSE)
@@ -128,7 +132,7 @@ coalition_list <- parse_coalitions(shap_names, names(R_D_Sym))
 #Exact symmetric Shapley values; takes some time (10-15 min)
 print("Computing Symmetric Shapley values for blockForest; takes some time (3-5 min)")
 
-ShapSym3 <- explain_manual(model = model_list,
+ShapSym <- explain_manual(model = model_list,
                            x_explain = x_explain_reduced,
                            x_train = x_train_reduced,
                            predict_model = predict_with_reduced_bf,
@@ -145,9 +149,9 @@ ShapSym3 <- explain_manual(model = model_list,
 # Quick assessment of global importance of features by sum of absolute values
 # of (asymmetric) Shapley values (not SAGE!)
 print("Sum of absolute values of Asymmetric Shapley values")
-print(round(colMeans(abs(aShapbf)),3)) #Asymmetric
+print(round(colMeans(abs(ShapAsym$shap)),3)) #Asymmetric
 print("Sum of absolute values of Symmetric Shapley values")
-print(round(colMeans(abs(Shapbf)),3)) #Symmetric
+print(round(colMeans(abs(ShapSym$shap)),3)) #Symmetric
 cat("\n")
 
 #save for further use

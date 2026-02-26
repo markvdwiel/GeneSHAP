@@ -2,12 +2,12 @@
 ## --- Data Example, part I: data processing and prediction models  ---
 ########################################################################
 #
-# NOTE: AS RESULTS FROM TREE ENSEMBLE LEARNERS AND CROSS-VALIDATION (FOR TUNING PARAMETERS) 
-# ARE NOT DETERMINISTIC, RESULTS MAY DEVIATE SOMEWHAT FROM THOSE IN THE MANUSCRIPT. 
-# QUALITATIVELY, HOWEVER, THEY SHOULD BE VERY SIMILAR. 
+# NOTE: AS RESULTS FROM TREE ENSEMBLE LEARNERS AND CROSS-VALIDATION (FOR TUNING PARAMETERS)
+# ARE NOT DETERMINISTIC, RESULTS MAY DEVIATE SOMEWHAT FROM THOSE IN THE MANUSCRIPT.
+# QUALITATIVELY, HOWEVER, THEY SHOULD BE VERY SIMILAR.
 
 # set working directory
-setwd("C:/Synchr/Rscripts/ShapleyDependency/GeneShap/")
+# setwd("C:/Synchr/Rscripts/ShapleyDependency/GeneShap/")
 
 library(randomForestSRC) #for creating low-dim disease state specific gene summary
 library(blockForest)
@@ -39,7 +39,7 @@ Clin_train <- Clinical[-ids,]; Clin_explain <- Clinical[ids,]
 X_Tot_train <- Tot[-ids,]; X_Tot_explain <- Tot[ids,]
 
 ############# Dim Red 0: regressing DS on genes #####
-# Create a disease state specific summary of the genes. As this summary is used by the 
+# Create a disease state specific summary of the genes. As this summary is used by the
 # prediction algorithms (see manuscript) it needs to be created before applying these algorithms
 
 #rfsrc requires a data set containing both the response variable and the omics variables
@@ -48,11 +48,11 @@ traindat <- Genes_train
 databoth <- data.frame(trainlab,traindat)
 #set.seed(455)
 rfres <- rfsrc(trainlab ~ ., var.used="all.trees",ntree=1000, data = databoth, importance="none")
-# 
+#
 # predicted disease state (train)
 predstage <- data.frame(rfres$predicted.oob[,-4])
 colnames(predstage) <- paste("Pred", colnames(predstage), sep="")
-# 
+#
 # predicted disease state (test)
 predictrf <- data.frame((predict(rfres,newdata=Genes_explain)$predicted)[,-4])
 colnames(predictrf) <- colnames(predstage)
@@ -147,13 +147,13 @@ save(fT, Cindex,AUC, file = "fusedTreeFit.Rdata")
 
 ##### --- 3. ridge0 --- #####
 ################################
-# Fitting ridge0 on training data. ridge0 is a ridge regression model that 
+# Fitting ridge0 on training data. ridge0 is a ridge regression model that
 # does not penalize the low-dimensional variables
 
 # Fitting: tuning penalty parameter + fit
 #ridge regression requires dummy coding for low-dimensional variables
-Clin_train_num <- model.matrix(~., Clin_train)[,-1] 
-Clin_explain_num <- model.matrix(~., Clin_explain)[,-1] 
+Clin_train_num <- model.matrix(~., Clin_train)[,-1]
+Clin_explain_num <- model.matrix(~., Clin_explain)[,-1]
 
 p_omics <- ncol(Genes_train)
 p_clin <- ncol(Clin_train_num)
