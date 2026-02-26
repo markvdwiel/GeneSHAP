@@ -18,3 +18,5 @@ C. Simulation results, low-dimensional: SimExample_lowdim.R
 
 D. Importance sampling: ImpSampling_check.R
 
+The scripts make use of a dedicated version of the R-package shapr. To install this enter:
+remotes::install_github("NorskRegnesentral/shapr", ref = "hacks_for_Mark")
